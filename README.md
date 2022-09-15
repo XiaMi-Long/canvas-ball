@@ -4,7 +4,7 @@
  * @Author: wwy
  * @Date: 2022-09-15 11:12:42
  * @LastEditors: wwy
- * @LastEditTime: 2022-09-15 13:42:58
+ * @LastEditTime: 2022-09-15 14:02:32
 -->
 
 # canvas-ball
@@ -17,5 +17,4 @@ canvas 小球游戏
 2. 适配 steam wallpaper 的页面,对接了 wallpaper 的接口
 3. 适配 steam wallpaper 的页面,为第二个版本的分支,展现形式不同,(阉割:hamster)了展示小球轨迹的功能
 
-[Demo]:http://101.42.223.40/game/
-
+[demo]: http://101.42.223.40/game/
