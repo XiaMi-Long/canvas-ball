@@ -1,0 +1,348 @@
+<!--
+ * @Descripttion: 
+ * @version: 
+ * @Author: wwy
+ * @Date: 2022-08-24 15:13:02
+ * @LastEditors: wwy
+ * @LastEditTime: 2022-08-25 16:37:42
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body {
+      background-color: #202124;
+    }
+
+    #mycanvas {
+      border: 1px solid black;
+      background-color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="mycanvas" width="1000" height="1000"></canvas>
+
+  <script type="text/javascript">
+    const mycanvas = document.getElementById('mycanvas');
+    const context = mycanvas.getContext('2d');
+    const colorArray = ['#00a98f', '#ff0000', '#0abf53', '#0099e5', '#ffdd00', '#511378', '#8db9ca', '#0389ff', '#ffffff'];
+    const ballArray = []
+    const lineArray = []
+    let ballCount = 15;
+    let clearCount = 0;
+
+    let lineArrayCount = 0;
+    let currentLineArray = []
+
+    for (let i = 0; i < ballCount; i++) {
+      const ball = {
+        x: 20,
+        y: 20,
+        addX: 2,
+        addY: 2,
+        color: '',
+        init: function () {
+          if (i % 2 === 0) {
+
+            this.addX = getRandomInt(10) + getRandomInt(3)
+            this.addY = getRandomInt(6) + getRandomInt(3)
+          } else {
+            this.addX = -getRandomInt(10) + getRandomInt(3)
+            this.addY = -getRandomInt(6) + getRandomInt(3)
+          }
+          this.x = (getRandomInt(17)) * getRandomInt(10)
+          this.y = (getRandomInt(17)) * getRandomInt(10)
+          this.color = colorArray[getRandomInt(9)]
+        },
+
+        draw: function () {
+          context.beginPath();
+          context.arc(this.x, this.y, 10, (Math.PI / 180 * 0), (Math.PI / 180 * 360), false);
+          context.fillStyle = this.color
+          context.closePath();
+          context.fill()
+        }
+      }
+
+      ball.init()
+
+      ballArray.push(ball);
+
+      setTimeout(timeout, 24)
+
+      function timeout () {
+        window.requestAnimationFrame(move);
+        window.requestAnimationFrame(addLine)
+        setTimeout(timeout, 24)
+      }
+
+      function move () {
+        clearCount++;
+        if (clearCount === ballCount) {
+          clearAll();
+          clearCount = 0;
+        }
+        // 碰撞检测
+        checkBallCollision(i)
+        checkLineCollision(i)
+        ball.draw()
+        checkBorders(ball)
+        ball.x += ball.addX;
+        ball.y += ball.addY;
+      }
+
+
+    }
+
+
+    mycanvas.addEventListener('mousedown', mousedown)
+    mycanvas.addEventListener('mouseup', mouseup)
+    mycanvas.addEventListener('mouseout', canvasMouseout)
+    mycanvas.addEventListener('mouseover', canvasMouseover)
+
+    /**
+     * @name: wwy
+     * @msg: 碰撞检测-球与球
+     * @param {*} i
+     * @return {*}
+     */
+    function checkBallCollision (i) {
+      const A_CenterX = ballArray[i].x + ballArray[i].addX;
+      const A_CenterY = ballArray[i].y + ballArray[i].addY;
+      for (var j = 0; j < ballArray.length; j++) {
+        if (j === i) {
+          continue;
+        }
+        const B_CenterX = ballArray[j].x + ballArray[j].addX;
+        const B_CenterY = ballArray[j].y + ballArray[j].addY;
+
+        if (Math.abs(A_CenterX - B_CenterX) <= 10 && Math.abs(A_CenterY - B_CenterY) <= 10) {
+
+          ballArray[i].addX = -ballArray[i].addX;
+          ballArray[j].addX = -ballArray[j].addX;
+          ballArray[i].addY = -ballArray[i].addY;
+          ballArray[j].addY = -ballArray[j].addY;
+
+          // 如果x轴加速度比自己大
+          if (ballArray[j].addX > ballArray[i].addX) {
+            ballArray[i].addX++;
+            ballArray[j].addX--;
+          }
+
+          // 如果x轴加速度比自己小
+          if (ballArray[j].addX < ballArray[i].addX) {
+            ballArray[i].addX--;
+            ballArray[j].addX++;
+          }
+
+          // 如果y轴加速度比自己大
+          if (ballArray[j].addY > ballArray[i].addY) {
+            ballArray[i].addY++;
+            ballArray[j].addY--;
+          }
+
+          // 如果y轴加速度比自己小
+          if (ballArray[j].addY < ballArray[i].addY) {
+            ballArray[i].addY--;
+            ballArray[j].addY++;
+          }
+
+          // 防止超出限制
+          if (ballArray[j].addX < 0 || ballArray[j].addY < 0) {
+            ballArray[j].addY = getRandomInt(5) + 3;
+            ballArray[j].addX = getRandomInt(5) + 3;
+          }
+          if (ballArray[i].addX < 0 || ballArray[i].addY < 0) {
+            ballArray[i].addY = getRandomInt(5) + 3;
+            ballArray[i].addX = getRandomInt(5) + 3;
+          }
+
+          if (ballArray[j].addX > 8 || ballArray[j].addY > 15) {
+            ballArray[j].addY = getRandomInt(7);
+            ballArray[j].addX = getRandomInt(7);
+          }
+          if (ballArray[i].addX > 8 || ballArray[i].addY > 16) {
+            ballArray[i].addY = getRandomInt(7);
+            ballArray[i].addX = getRandomInt(7);
+          }
+          continue;
+        }
+
+      }
+    }
+
+
+    /**
+     * @name: wwy
+     * @msg: 碰撞检测-线
+     * @param {*} i
+     * @return {*}
+     */
+    function checkLineCollision (i) {
+      const A_CenterX = ballArray[i].x + ballArray[i].addX;
+      const A_CenterY = ballArray[i].y + ballArray[i].addY;
+
+      for (let j = 0; j < lineArray.length; j++) {
+        const px = A_CenterX;
+        const py = A_CenterY;
+        const x1 = lineArray[j].lineX;
+        const y1 = lineArray[j].lineY;
+        const x2 = lineArray[j].moveToX;
+        const y2 = lineArray[j].moveToY;
+
+        const d1 = getLen(px, py, x2, y2);
+
+        const d2 = getLen(px, py, x1, y1);
+
+        const lineLen = getLen(x1, y1, x2, y2);
+
+        const buffer = 0.5; // 误差允许范围
+
+        if (d1 + d2 >= lineLen - buffer && d1 + d2 <= lineLen + buffer) {
+
+          ballArray[i].addX = -ballArray[i].addX;
+          ballArray[i].addY = -ballArray[i].addY;
+          break;
+        }
+      }
+
+    }
+
+
+    /**
+     * @name: wwy
+     * @msg: 边界检测
+     * @param {*} ball
+     * @return {*}
+     */
+    function checkBorders (ball) {
+      if (ball.x + ball.addX >= mycanvas.width || ball.x + ball.addX < 0) {
+        ball.addX = -ball.addX;
+      }
+
+      if (ball.y + ball.addY >= mycanvas.height || ball.y + ball.addY < 0) {
+        ball.addY = -ball.addY;
+      }
+    }
+
+
+
+    /**
+     * @name: wwy
+     * @msg: 清除画布
+     * @return {*}
+     */
+    function clearAll () {
+      context.fillStyle = 'rgba(0,0,0,.3)'
+      context.fillRect(0, 0, mycanvas.width, mycanvas.height)
+      // context.clearRect(0, 0, 500, 600)
+    }
+
+
+    /**
+     * @name: wwy
+     * @msg: 鼠标左键按下事件
+     * @param {*} event
+     * @return {*}
+     */
+    function mousedown (event) {
+      if (event.button !== 0) {
+        return
+      }
+      console.log("down");
+      console.log(event.x, event.y);
+      currentLineArray.push(event.x);
+      currentLineArray.push(event.y);
+    }
+
+    function mouseup (event) {
+      console.log("up");
+      console.log(event.x, event.y);
+      const moveToX = currentLineArray[0]
+      const moveToY = currentLineArray[1]
+      if (event.x === moveToX || event.y === moveToY) {
+        console.log("移动点与涂鸦点一致,退出");
+        currentLineArray = []
+        return
+      }
+
+      if (Math.abs(event.x - moveToX) <= 10 || Math.abs(event.y - moveToY) <= 10) {
+        console.log("距离过小,退出");
+        currentLineArray = []
+        return
+      }
+      currentLineArray.push(event.x);
+      currentLineArray.push(event.y);
+      lineArray[lineArrayCount] = {
+        moveToX,
+        moveToY,
+        lineX: event.x,
+        lineY: event.y,
+        color: colorArray[getRandomInt(9)],
+      }
+      lineArrayCount++;
+
+      currentLineArray = []
+    }
+
+    function canvasMouseout () {
+      mycanvas.removeEventListener('mousedown', mousedown);
+      mycanvas.removeEventListener('mouseup', mouseup);
+    }
+    function canvasMouseover () {
+      mycanvas.addEventListener('mousedown', mousedown)
+      mycanvas.addEventListener('mouseup', mouseup)
+    }
+
+
+    function addLine () {
+      context.lineWidth = 1;
+      lineArray.forEach(item => {
+        context.strokeStyle = item.color;
+        context.beginPath();
+        context.moveTo(item.moveToX, item.moveToY);
+        context.lineTo(item.lineX, item.lineY);
+        context.stroke();
+      })
+    }
+
+
+    function getRandomInt (max) {
+      return Math.floor(Math.random() * max);
+    }
+
+
+
+    /*
+
+    * 勾股定理计算两点间直线距离
+
+    * point1 线的一个端点
+
+    * point2 线的另一个端点
+
+    */
+
+    function getLen (x1, y1, x2, y2) {
+
+      const minusX = x2 - x1;
+
+      const minusY = y2 - y1;
+
+      const len = Math.sqrt(minusX * minusX + minusY * minusY);
+
+      return len;
+
+    }
+  </script>
+</body>
+
+</html>

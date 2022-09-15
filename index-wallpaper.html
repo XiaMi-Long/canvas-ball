@@ -1,0 +1,253 @@
+<!--
+ * @Descripttion: 
+ * @version: 
+ * @Author: wwy
+ * @Date: 2022-08-24 15:13:02
+ * @LastEditors: wwy
+ * @LastEditTime: 2022-08-25 19:57:21
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body {
+      background-color: #202124;
+
+      overflow: hidden;
+    }
+
+    #mycanvas {
+      border: 1px solid black;
+      background-color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="mycanvas"></canvas>
+  <script type="text/javascript">
+    var ballCount = 15;
+    var mycanvas = document.getElementById('mycanvas');
+
+    var context = mycanvas.getContext('2d');
+    var colorArray = ['#00a98f', '#ff0000', '#0abf53', '#0099e5', '#ffdd00', '#511378', '#8db9ca', '#0389ff', '#ffffff', '#6534ac', '#aea400', '#ff6319', '#b3dcff', '#b0a696', "#85c446"];
+    var ballArray = []
+    var setTimeoutArray = []
+
+    var clearCount = 0;
+
+    window.wallpaperPropertyListener = {
+      applyUserProperties: function (properties) {
+        if (properties.luoqixi) {
+          ballCount = properties.luoqixi.value;
+          ballArray = [];
+          clearCount = 0;
+          context.clearRect(0, 0, mycanvas.width, mycanvas.height);
+          setTimeoutArray.forEach(id => {
+            window.clearInterval(id);
+          });
+          initCanves()
+        }
+      },
+    };
+
+  </script>
+  <script type="text/javascript">
+    initCanves();
+    function initCanves () {
+      for (let i = 0; i < ballCount; i++) {
+        const ball = {
+          x: 20,
+          y: 20,
+          addX: 2,
+          addY: 2,
+          color: '',
+          init: function () {
+            if (i % 2 === 0) {
+              this.addX = getRandomInt(10) + getRandomInt(3)
+              this.addY = getRandomInt(6) + getRandomInt(3)
+
+            } else {
+              this.addX = -(getRandomInt(10) + getRandomInt(3))
+              this.addY = -(getRandomInt(6) + getRandomInt(3))
+
+            }
+
+            this.x = (getRandomInt(17)) * getRandomInt(10)
+            this.y = (getRandomInt(17)) * getRandomInt(10)
+            this.color = colorArray[getRandomInt(colorArray.length)]
+          },
+
+          draw: function () {
+            context.beginPath();
+            context.arc(this.x, this.y, 10, (Math.PI / 180 * 0), (Math.PI / 180 * 360), false);
+            context.fillStyle = this.color
+            context.closePath();
+            context.fill()
+          }
+        }
+
+        ball.init()
+
+        ballArray.push(ball);
+
+        var intervalId = setInterval(timeout, 24)
+
+        function timeout () {
+          window.requestAnimationFrame(move);
+        }
+
+        setTimeoutArray.push(intervalId);
+
+        function move () {
+          clearCount++;
+          if (clearCount === ballCount) {
+            clearAll();
+            clearCount = 0;
+          }
+          // 碰撞检测
+          checkBallCollision(i)
+          ball.draw()
+          checkBorders(ball)
+          ball.x += ball.addX;
+          ball.y += ball.addY;
+        }
+      }
+    };
+
+
+    window.onload = function () {
+      mycanvas.width = window.innerWidth;
+      mycanvas.height = window.innerHeight;
+    }
+
+    /**
+     * @name: wwy
+     * @msg: 碰撞检测-球与球
+     * @param {*} i
+     * @return {*}
+     */
+    function checkBallCollision (i) {
+
+      const A_CenterX = ballArray[i].x + ballArray[i].addX;
+      const A_CenterY = ballArray[i].y + ballArray[i].addY;
+      for (var j = 0; j < ballArray.length; j++) {
+        if (j === i) {
+          continue;
+        }
+        const B_CenterX = ballArray[j].x + ballArray[j].addX;
+        const B_CenterY = ballArray[j].y + ballArray[j].addY;
+
+        if (Math.abs(A_CenterX - B_CenterX) <= 10 && Math.abs(A_CenterY - B_CenterY) <= 10) {
+
+          ballArray[i].addX = -ballArray[i].addX;
+          ballArray[j].addX = -ballArray[j].addX;
+          ballArray[i].addY = -ballArray[i].addY;
+          ballArray[j].addY = -ballArray[j].addY;
+
+          // 如果x轴加速度比自己大
+          if (ballArray[j].addX > ballArray[i].addX) {
+            ballArray[i].addX++;
+            ballArray[j].addX--;
+          }
+
+          // 如果x轴加速度比自己小
+          if (ballArray[j].addX < ballArray[i].addX) {
+            ballArray[i].addX--;
+            ballArray[j].addX++;
+          }
+
+          // 如果y轴加速度比自己大
+          if (ballArray[j].addY > ballArray[i].addY) {
+            ballArray[i].addY++;
+            ballArray[j].addY--;
+          }
+
+          // 如果y轴加速度比自己小
+          if (ballArray[j].addY < ballArray[i].addY) {
+            ballArray[i].addY--;
+            ballArray[j].addY++;
+          }
+
+          // 防止超出限制
+          let xMax = 8;
+          let yMax = 15;
+
+          if (ballArray[j].addX < 0 || ballArray[j].addY < 0) {
+            ballArray[j].addY = getRandomInt(5) + 3;
+            ballArray[j].addX = getRandomInt(5) + 3;
+          }
+          if (ballArray[i].addX < 0 || ballArray[i].addY < 0) {
+            ballArray[i].addY = getRandomInt(5) + 3;
+            ballArray[i].addX = getRandomInt(5) + 3;
+          }
+
+          if (ballArray[j].addX > xMax || ballArray[j].addY > yMax) {
+
+            ballArray[j].addY = getRandomInt(7);
+            ballArray[j].addX = getRandomInt(7);
+          }
+          if (ballArray[i].addX > xMax || ballArray[i].addY > yMax) {
+            ballArray[i].addY = getRandomInt(7);
+            ballArray[i].addX = getRandomInt(7);
+          }
+          continue;
+        }
+
+      }
+    }
+
+
+
+
+    /**
+     * @name: wwy
+     * @msg: 边界检测
+     * @param {*} ball
+     * @return {*}
+     */
+    function checkBorders (ball) {
+      if (ball.x + ball.addX >= mycanvas.width || ball.x + ball.addX < 0) {
+        ball.addX = -ball.addX;
+      }
+
+      if (ball.y + ball.addY >= mycanvas.height || ball.y + ball.addY < 0) {
+        ball.addY = -ball.addY;
+      }
+    }
+
+
+
+    /**
+     * @name: wwy
+     * @msg: 清除画布
+     * @return {*}
+     */
+    function clearAll () {
+      context.fillStyle = 'rgba(0,0,0,.3)'
+      context.fillRect(0, 0, mycanvas.width, mycanvas.height)
+      // context.clearRect(0, 0, 500, 600)
+    }
+
+
+
+
+
+
+    function getRandomInt (max) {
+      return Math.floor(Math.random() * max);
+    }
+
+
+
+
+  </script>
+</body>
+
+</html>
